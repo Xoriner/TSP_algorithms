@@ -17,7 +17,7 @@ int main() {
 
     std::vector<std::vector<int>> graph_matrix_file = read_simple_input("instances/sym3.txt");
 
-    //NEAREST NEIGHBOR
+    //NEAREST NEIGHBOUR
     auto start_nn = std::chrono::high_resolution_clock::now();
     TSPResult result_nn = tsp_nearest_neighbor(graph_matrix_file, 0);
     auto stop_nn = std::chrono::high_resolution_clock::now();
