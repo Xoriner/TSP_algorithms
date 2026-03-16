@@ -4,32 +4,39 @@
 
 #include "tsp_bruteforce.h"
 
+//TODO
+//Optymalizacje na zasadzie nie sprawdzania jak wiecej niz best_cost juz sie wyliczylo
 
-int tsp_bruteforce(const std::vector<std::vector<int>>& dist) {
-    int n = dist.size();
+TSPResult tsp_bruteforce(const std::vector<std::vector<int>>& graph_matrix) {
+    int n = graph_matrix.size();
 
     std::vector<int> perm;
-    for(int i = 1; i < n; i++)
+
+    // We know we have to come back to the starting point
+    // This way we generate (n-1)! permutations not n!
+    for (int i = 1; i < n; i++)
         perm.push_back(i);
 
-    // for safety max value of int
     int best_cost = std::numeric_limits<int>::max();
+    std::vector<int> best_path;
 
     do {
-        int cost = 0;
+        int current_cost = 0;
         int prev = 0;
 
-        for(int v : perm) {
-            cost += dist[prev][v];
+        for (int v : perm) {
+            current_cost += graph_matrix[prev][v];
             prev = v;
         }
 
-        cost += dist[prev][0];
+        current_cost += graph_matrix[prev][0];
 
-        best_cost = std::min(best_cost, cost);
+        if (current_cost < best_cost) {
+            best_cost = current_cost;
+            best_path = perm; // kopia najlepszej permutacji
+        }
 
-    } while(next_permutation(perm.begin(), perm.end()));
+    } while (std::next_permutation(perm.begin(), perm.end()));
 
-    return best_cost;
+    return {best_cost, best_path};
 }
-

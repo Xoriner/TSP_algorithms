@@ -1,9 +1,8 @@
 #ifndef TSP_BRUTEFORCE_H
 #define TSP_BRUTEFORCE_H
 
-#include <vector>
+#include "utilities/tsp_result.h"
 
-// Deklaracja funkcji
-int tsp_bruteforce(const std::vector<std::vector<int>>& dist);
+TSPResult tsp_bruteforce(const std::vector<std::vector<int>>& graph_matrix);
 
 #endif //TSP_BRUTEFORCE_H
