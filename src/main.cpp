@@ -15,7 +15,7 @@ int main() {
         {20,25,30,0}
     };
 
-    std::vector<std::vector<int>> graph_matrix_file = read_simple_input("instances/sym3.txt");
+    std::vector<std::vector<int>> graph_matrix_file = read_simple_input("instances/sym14.txt");
 
     //NEAREST NEIGHBOUR
     auto start_nn = std::chrono::high_resolution_clock::now();
