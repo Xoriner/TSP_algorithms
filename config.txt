@@ -3,13 +3,13 @@
 # =========================================
 # input_file - ścieżka do pliku instancji
 # algorithm  - RAND | NN | RNN | BF
-# runs       - liczba powtórzeń (dla RAND)
+# runs       - liczba powtórzeń
 # start_node - węzeł startowy (dla NN)
 # output     - czy wypisywać ścieżkę (0/1)
 # =========================================
 
-input_file = instances/TSPLIB/a280.tsp
-algorithm = NN
-runs = 1
+input_file = instances/TSPLIB/ch150.tsp
+algorithm = RNN
+runs = 10
 start_node = -1
 output = 1

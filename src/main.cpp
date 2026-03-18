@@ -2,7 +2,9 @@
 #include <vector>
 #include <chrono>
 #include <fstream>
-#include <random> // Do losowania start_node
+#include <random>
+#include <limits>
+#include <string>
 
 #include "utilities/read_config.h"
 #include "utilities/utils.h"
@@ -15,12 +17,12 @@ int main(int argc, char* argv[]) {
 
     std::string config_path = "config.txt";
 
-    // jeśli podano argument, używamy go
+    // Jeśli podano argument, używamy go jako ścieżki do konfiguracji
     if (argc > 1) {
         config_path = argv[1];
     }
 
-    // sprawdź czy plik istnieje
+    // Sprawdzenie czy plik istnieje
     std::ifstream test(config_path);
     if (!test) {
         std::cerr << "Error: Cannot open config file: " << config_path << std::endl;
@@ -29,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     auto config = read_config(config_path);
 
-    // sprawdzenie wymaganych pól
+    // Sprawdzenie wymaganych pól
     if (config.find("input_file") == config.end() ||
         config.find("algorithm") == config.end()) {
         std::cerr << "Error: Missing required config fields (input_file / algorithm)\n";
@@ -38,53 +40,89 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::vector<int>> matrix;
 
+    // Wczytywanie macierzy kosztów
     if (config["input_file"].find(".tsp") != std::string::npos) {
         matrix = read_tsplib(config["input_file"]);
     } else {
         matrix = read_simple_input(config["input_file"]);
     }
 
-    std::string algo = config["algorithm"];
-
-    auto start = std::chrono::high_resolution_clock::now();
-    TSPResult result;
-
-    if (algo == "BF") {
-        result = tsp_bruteforce(matrix);
-    }
-    else if (algo == "NN") {
-        int start_node = config.count("start_node") ? std::stoi(config["start_node"]) : 0;
-
-        // Jeśli start_node to -1, losujemy wierzchołek z zakresu [0, rozmiar_macierzy - 1]
-        if (start_node == -1) {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(0, matrix.size() - 1);
-            start_node = dis(gen);
-            std::cout << "Randomly selected start node: " << start_node << "\n";
-        }
-
-        result = tsp_nearest_neighbor(matrix, start_node);
-    }
-    else if (algo == "RNN") {
-        result = tsp_rnn(matrix);
-    }
-    else if (algo == "RAND") {
-        int runs = config.count("runs") ? std::stoi(config["runs"]) : 1000;
-        result = tsp_rand(matrix, runs);
-    }
-    else {
-        std::cerr << "Error: Unknown algorithm: " << algo << std::endl;
+    if (matrix.empty()) {
+        std::cerr << "Error: Matrix is empty or could not be loaded.\n";
         return 1;
     }
 
-    auto stop = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> duration = stop - start;
+    std::string algo = config["algorithm"];
+    int runs = config.count("runs") ? std::stoi(config["runs"]) : 1;
+    if (runs <= 0) runs = 1;
 
-    std::cout << "Time: " << duration.count() << " ms\n";
+    // Inicjalizacja generatora losowego dla NN (start_node = -1)
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, (int)matrix.size() - 1);
+
+    TSPResult best_overall_result;
+    best_overall_result.cost = std::numeric_limits<int>::max();
+
+    std::cout << "Starting " << algo << " with " << runs << " runs...\n";
+
+    // POMIAR CZASU: Start przed pętlą wykonawczą
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < runs; ++i) {
+        TSPResult current_run;
+
+        if (algo == "BF") {
+            current_run = tsp_bruteforce(matrix);
+        }
+        else if (algo == "NN") {
+            int start_node = config.count("start_node") ? std::stoi(config["start_node"]) : 0;
+
+            // Jeśli start_node to -1, losujemy wierzchołek dla każdego przebiegu
+            if (start_node == -1) {
+                current_run = tsp_nearest_neighbor(matrix, dis(gen));
+            } else {
+                current_run = tsp_nearest_neighbor(matrix, start_node);
+            }
+        }
+        else if (algo == "RNN") {
+            current_run = tsp_rnn(matrix);
+        }
+        else if (algo == "RAND") {
+            // Uwaga: jeśli tsp_rand wewnątrz ma własną pętlę,
+            // tutaj wywołujemy ją 'runs' razy. Możesz dostosować argument.
+            current_run = tsp_rand(matrix, 1000);
+        }
+        else {
+            std::cerr << "Error: Unknown algorithm: " << algo << std::endl;
+            return 1;
+        }
+
+        // Aktualizacja najlepszego wyniku (szukamy minimum)
+        if (current_run.cost < best_overall_result.cost) {
+            best_overall_result = current_run;
+        }
+    }
+
+    // POMIAR CZASU: Stop po zakończeniu wszystkich powtórzeń
+    auto stop_time = std::chrono::high_resolution_clock::now();
+
+    // Obliczenia statystyczne
+    std::chrono::duration<double, std::milli> total_duration_ms = stop_time - start_time;
+    double avg_time = total_duration_ms.count() / runs;
+
+    // Wyświetlanie wyników
+    std::cout << "\n================ RESULT ================\n";
+    std::cout << "Algorithm:      " << algo << "\n";
+    std::cout << "Runs:           " << runs << "\n";
+    std::cout << "Best Cost:      " << best_overall_result.cost << "\n";
+    std::cout << "Total Time:     " << total_duration_ms.count() << " ms\n";
+    std::cout << "Avg Time/Run:   " << avg_time << " ms\n";
+    std::cout << "========================================\n";
 
     if (config.count("output") && config["output"] == "1") {
-        print_solution(result);
+        std::cout << "Best Path: ";
+        print_solution(best_overall_result);
     }
 
     return 0;
