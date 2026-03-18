@@ -8,7 +8,7 @@
 # output     - czy wypisywać ścieżkę (0/1)
 # =========================================
 
-input_file = instances/TSPLIB/d15112.tsp
+input_file = instances/TSPLIB/berlin52.tsp
 algorithm = NN
 runs = 1
 start_node = -1

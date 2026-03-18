@@ -145,10 +145,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: Could not open results.csv for writing\n";
     }
 
-    // ======== Czekanie na Enter ========
-    std::cout << "Press Enter to exit...";
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::cin.get();
+    //Czekanie na klikniecie
+    std::system("pause");
 
 
     return 0;
