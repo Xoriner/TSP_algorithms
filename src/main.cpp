@@ -2,6 +2,7 @@
 #include <vector>
 #include <chrono>
 #include <fstream>
+#include <random> // Do losowania start_node
 
 #include "utilities/read_config.h"
 #include "utilities/utils.h"
@@ -53,6 +54,16 @@ int main(int argc, char* argv[]) {
     }
     else if (algo == "NN") {
         int start_node = config.count("start_node") ? std::stoi(config["start_node"]) : 0;
+
+        // Jeśli start_node to -1, losujemy wierzchołek z zakresu [0, rozmiar_macierzy - 1]
+        if (start_node == -1) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, matrix.size() - 1);
+            start_node = dis(gen);
+            std::cout << "Randomly selected start node: " << start_node << "\n";
+        }
+
         result = tsp_nearest_neighbor(matrix, start_node);
     }
     else if (algo == "RNN") {
