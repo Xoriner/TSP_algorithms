@@ -1,0 +1,15 @@
+# =========================================
+# TSP CONFIG FILE
+# =========================================
+# input_file - ścieżka do pliku instancji
+# algorithm  - RAND | NN | RNN | BF
+# runs       - liczba powtórzeń (dla RAND)
+# start_node - węzeł startowy (dla NN)
+# output     - czy wypisywać ścieżkę (0/1)
+# =========================================
+
+input_file = instances/TSPLIB/berlin52.tsp
+algorithm = NN
+runs = 1
+start_node = 0
+output = 1
