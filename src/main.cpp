@@ -5,6 +5,7 @@
 #include <random>
 #include <limits>
 #include <string>
+#include <iomanip>
 
 #include "utilities/read_config.h"
 #include "utilities/utils.h"
@@ -122,6 +123,33 @@ int main(int argc, char* argv[]) {
         std::cout << "Best Path: ";
         print_solution(best_overall_result);
     }
+
+    // ======== Zapis do CSV ========
+    std::ofstream csv_file("results.csv", std::ios::app); // dopisywanie
+    if (csv_file.is_open()) {
+        // jeśli plik był pusty, dodaj nagłówki
+        csv_file.seekp(0, std::ios::end);
+        if (csv_file.tellp() == 0) {
+            csv_file << "Algorithm,Runs,BestCost,TotalTime_ms,AvgTime_ms\n";
+        }
+
+        csv_file << algo << ",";
+        csv_file << runs << ",";
+        csv_file << best_overall_result.cost << ",";
+        csv_file << std::fixed << std::setprecision(2) << total_duration_ms.count() << ",";
+        csv_file << std::fixed << std::setprecision(2) << avg_time << "\n";
+
+        csv_file.close();
+        std::cout << "Results saved to results.csv\n";
+    } else {
+        std::cerr << "Error: Could not open results.csv for writing\n";
+    }
+
+    // ======== Czekanie na Enter ========
+    std::cout << "Press Enter to exit...";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin.get();
+
 
     return 0;
 }
