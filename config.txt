@@ -8,8 +8,8 @@
 # output     - czy wypisywać ścieżkę (0/1)
 # =========================================
 
-input_file = instances/TSPLIB/ch150.tsp
-algorithm = RNN
-runs = 10
+input_file = instances/TSPLIB/berlin52.tsp
+algorithm = RAND
+runs = 1000
 start_node = -1
 output = 1

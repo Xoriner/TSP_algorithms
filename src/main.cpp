@@ -89,9 +89,7 @@ int main(int argc, char* argv[]) {
             current_run = tsp_rnn(matrix);
         }
         else if (algo == "RAND") {
-            // Uwaga: jeśli tsp_rand wewnątrz ma własną pętlę,
-            // tutaj wywołujemy ją 'runs' razy. Możesz dostosować argument.
-            current_run = tsp_rand(matrix, 1000);
+            current_run = tsp_rand(matrix);
         }
         else {
             std::cerr << "Error: Unknown algorithm: " << algo << std::endl;
