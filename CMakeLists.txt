@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 project(pea)
 
-# Dodaj to zaraz pod project(pea)
 if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 endif()
