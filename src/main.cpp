@@ -10,7 +10,6 @@
 #include "utilities/read_config.h"
 #include "utilities/utils.h"
 #include "algorithms/tsp_bruteforce.h"
-#include "algorithms/tsp_rand.h"
 #include "algorithms/tsp_nn.h"
 #include "algorithms/tsp_rnn.h"
 
@@ -88,9 +87,6 @@ int main(int argc, char* argv[]) {
         }
         else if (algo == "RNN") {
             current_run = tsp_rnn(matrix);
-        }
-        else if (algo == "RAND") {
-            current_run = tsp_rand(matrix);
         }
         else {
             std::cerr << "Error: Unknown algorithm: " << algo << std::endl;
