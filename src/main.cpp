@@ -81,10 +81,17 @@ int main(int argc, char* argv[]) {
     if (csv_file.is_open()) {
         csv_file.seekp(0, std::ios::end);
         if (csv_file.tellp() == 0) {
-            csv_file << "Mode,InitUB,Cost,Time_ms,NodesVisited\n";
+            // Nagłówek: Typ, Plik, Rozmiar, Tryb, Czy_z_UB, Koszt, Czas_ms
+            csv_file << "File,N,Mode,InitUB,Cost,Time_ms\n";
         }
-        csv_file << search_mode << "," << (use_initial_ub ? "YES" : "NO") << ",";
-                 //<< result.cost << "," << duration_ms.count() << "," << result.nodes_visited << "\n";
+
+        csv_file << config["input_file"] << ","
+                 << matrix.size() << ","
+                 << search_mode << ","
+                 << (use_initial_ub ? "YES" : "NO") << ","
+                 << result.cost << ","
+                 << duration_ms.count() << "\n";
+
         csv_file.close();
     }
 

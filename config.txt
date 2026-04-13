@@ -7,7 +7,7 @@
 # output        - czy wypisywać ścieżkę (0/1)
 # =========================================
 
-input_file = instances/generated/asym13.txt
-search_mode = 3
-use_initial_ub = 0
+input_file = instances/generated/asym14.txt
+search_mode = 1
+use_initial_ub = 1
 output = 1
