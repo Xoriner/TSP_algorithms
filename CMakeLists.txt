@@ -23,6 +23,8 @@ set(SOURCES
         src/utilities/read_config.cpp
         src/utilities/read_config.h
         src/algorithms/tsp_rnn.h
+        src/algorithms/tsp_branch_and_bound.cpp
+        src/algorithms/tsp_branch_and_bound.h
 )
 
 add_executable(pea ${SOURCES})
