@@ -1,5 +1,5 @@
 # ===========================================
-# TSP CONFIG FILE - ZADANIE 2 (B&B)
+# TSP CONFIG FILE - ZADANIE 2 (B-and-B)
 # ===========================================
 # input_file    - ścieżka do pliku instancji
 # search_mode   - 1: BFS | 2: DFS | 3: LC
@@ -7,7 +7,7 @@
 # output        - czy wypisywać ścieżkę (0/1)
 # ===========================================
 
-input_file = instances/generated/sym15.txt
-search_mode = 1
+input_file = instances/generated/asym12.txt
+search_mode = 3
 use_initial_ub = 1
 output = 1
