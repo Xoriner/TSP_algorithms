@@ -2,12 +2,12 @@
 # TSP CONFIG FILE - ZADANIE 2 (B&B)
 # =========================================
 # input_file    - ścieżka do pliku instancji
-# search_mode   - 1: BFS | 2: DFS | 3: Lowest Cost (LC)
-# use_ub        - czy użyć RNN do wyznaczenia granicy górnej (UPPER BOUND) (0/1)
+# search_mode   - 1: BFS | 2: DFS | 3: LC
+# use_ub        - startowe UB via RNN (0/1)
 # output        - czy wypisywać ścieżkę (0/1)
 # =========================================
 
-input_file = instances/generated/asym14.txt
+input_file = instances/generated/sym15.txt
 search_mode = 1
 use_initial_ub = 1
 output = 1
