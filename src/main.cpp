@@ -95,6 +95,6 @@ int main(int argc, char* argv[]) {
         csv_file.close();
     }
 
-    std::system("pause");
+    //std::system("pause");
     return 0;
 }
