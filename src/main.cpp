@@ -30,10 +30,15 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<std::vector<int>> matrix;
-    if (config["input_file"].find(".tsp") != std::string::npos) {
-        matrix = read_tsplib(config["input_file"]);
+    std::string filename = config["input_file"];
+
+    // Sprawdzamy czy plik to format TSPLIB (.tsp lub .atsp)
+    if (filename.find(".tsp") != std::string::npos || filename.find(".atsp") != std::string::npos) {
+    matrix = read_tsplib(filename);
     } else {
-        matrix = read_simple_input(config["input_file"]);
+    // To wywoła się tylko dla Twoich własnych plików .txt,
+    // które mają tylko rozmiar i macierz
+    matrix = read_simple_input(filename);
     }
 
     if (matrix.empty()) return 1;
