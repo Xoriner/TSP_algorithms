@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+<TITLE>TSPLIB FAQ</TITLE>
+</HEAD>
+
+<BODY>
+<H1>TSPLIB: Questions and answers</H1>
+<BR>
+<HR>
+Q: I found a better solution than the one claimed to be optimal in TSPLIB,
+is this possible?
+<BR><BR>
+A: This never occured so far. In 
+all cases when someone believed to have found a better solution, it
+was not taken into account that it is exactly specified how distances
+for TSPLIB problems have to computed. Typical errors are 
+<UL><LI>
+evaluation of
+distances for geometric problem instances as floating-point numbers,
+<BR><LI>
+false computation of geographic distances,
+<BR><LI>
+use of display coordinates for distance computations.
+</UL>
+<HR>
+Q: I get wrong distances for problems of type GEO.
+<BR><BR>
+A: In a previous release there was a typing error in the distance
+specification for these problems. The formulae for computing latitude[i]
+and longitude[i] should read
+<UL>
+latitude[i] = PI * (deg + 5.0 * min / 3.0 ) / 180.0;
+<BR>
+longitude[i] = PI * (deg + 5.0 * min / 3.0 ) / 180.0;
+</UL>
+<HR>
+Q: What does the function nint() do?
+<BR><BR>
+A: The function "int nint (double x)"
+converts x into int format rounding  to  the  nearest
+int value, except halfway cases are rounded to the int value
+larger in magnitude.  This corresponds to the  Fortran  generic 
+intrinsic function nint. 
+<HR>
+Q: Are contributions still welcome?
+<BR><BR>
+A: Basically yes, but, in view of the many problem instances that are
+already available, new instances should either be real challenge
+problems or be of general interest.
+<HR>
+Q: Is an optimal tour available for every solved problem instance?
+<BR><BR>
+A: No. We have included several optimal tours for testing purposes. It is
+not intended to provide all optimal tours. It should still be a
+challenge to find one.
+<HR>
+Q: Are there optimal solutions available for instances other than symmetric
+ones?
+<BR><BR>
+A: So far, no other optimal solutions have been made available.
+<HR>
+<BR><BR>
+<ADDRESS> Last change: June 26, 1995</ADDRESS>
+</BODY>
+
+</HTML>
