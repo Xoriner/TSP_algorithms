@@ -1,7 +1,7 @@
-#ifndef NN_H
-#define NN_H
+#pragma once
 
-#include "../utilities/tsp_result.h"
+#include "tsp_result.h"
+#include <vector>
 
-TSPResult tsp_nearest_neighbor(const std::vector<std::vector<int>>& matrix, int start_node);
-#endif //NN_H
+TSPResult tsp_nearest_neighbor(const std::vector<std::vector<int>>& matrix,
+                                int start_city = 0);

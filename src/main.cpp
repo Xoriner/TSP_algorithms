@@ -3,49 +3,40 @@
 #include <chrono>
 #include <fstream>
 #include <random>
-#include <limits>
-#include <string>
 #include <iomanip>
+#include <map>
+#include <string>
 
 #include "utilities/read_config.h"
 #include "utilities/utils.h"
-#include "algorithms/tsp_bruteforce.h"
-#include "algorithms/tsp_rand.h"
-#include "algorithms/tsp_nn.h"
-#include "algorithms/tsp_rnn.h"
+#include "algorithms/tsp_sa.h"
 
 int main(int argc, char* argv[]) {
-
     std::string config_path = "config.txt";
 
-    // Jeśli podano argument, używamy go jako ścieżki do konfiguracji
     if (argc > 1) {
         config_path = argv[1];
     }
 
-    // Sprawdzenie czy plik istnieje
     std::ifstream test(config_path);
     if (!test) {
         std::cerr << "Error: Cannot open config file: " << config_path << std::endl;
         return 1;
     }
+    test.close();
 
     auto config = read_config(config_path);
 
-    // Sprawdzenie wymaganych pól
-    if (config.find("input_file") == config.end() ||
-        config.find("algorithm") == config.end()) {
-        std::cerr << "Error: Missing required config fields (input_file / algorithm)\n";
+    if (config.find("instancja") == config.end()) {
+        std::cerr << "Error: Missing required field 'instancja' in config\n";
         return 1;
     }
 
     std::vector<std::vector<int>> matrix;
-
-    // Wczytywanie macierzy kosztów
-    if (config["input_file"].find(".tsp") != std::string::npos) {
-        matrix = read_tsplib(config["input_file"]);
+    if (config["instancja"].find(".tsp") != std::string::npos) {
+        matrix = read_tsplib(config["instancja"]);
     } else {
-        matrix = read_simple_input(config["input_file"]);
+        matrix = read_simple_input(config["instancja"]);
     }
 
     if (matrix.empty()) {
@@ -53,101 +44,109 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string algo = config["algorithm"];
-    int runs = config.count("runs") ? std::stoi(config["runs"]) : 1;
-    if (runs <= 0) runs = 1;
+    std::cout << "Loaded instance: " << config["instancja"]
+              << " (n = " << matrix.size() << " cities)\n\n";
 
-    // Inicjalizacja generatora losowego dla NN (start_node = -1)
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, (int)matrix.size() - 1);
+    SAParams params;
+    params.t0 = config.count("t0") ? std::stod(config["t0"]) : 0.0;
+    params.lambda = config.count("lambda") ? std::stod(config["lambda"]) : 0.95;
+    params.scheme = config.count("schemat") ? config["schemat"] : "geometric";
+    params.neighborhood = config.count("sasiedztwo") ? config["sasiedztwo"] : "swap";
+    params.max_time_ms = config.count("max_czas") ? std::stoi(config["max_czas"]) : 900000;
+    params.max_no_improve = config.count("max_bez_poprawy") ? std::stoi(config["max_bez_poprawy"]) : 5000;
+    params.epoch_length = config.count("dlugosc_epoki") ? std::stoi(config["dlugosc_epoki"]) : 100;
+    params.use_ub = config.count("wyznacz_UB") && config["wyznacz_UB"] == "true";
+    params.use_lb = config.count("wyznacz_LB") && config["wyznacz_LB"] == "true";
 
-    TSPResult best_overall_result;
-    best_overall_result.cost = std::numeric_limits<int>::max();
+    int runs = config.count("powtorzenia:") ? std::stoi(config["runs"]) : 1;
 
-    std::cout << "Starting " << algo << " with " << runs << " runs...\n";
+    std::cout << "======== PARAMETERS ========\n";
+    std::cout << "Lambda:        " << std::fixed << std::setprecision(3) << params.lambda << "\n";
+    std::cout << "Schemat:       " << params.scheme << "\n";
+    std::cout << "Sasiedztwo:    " << params.neighborhood << "\n";
+    std::cout << "Dlugosc epoki: " << params.epoch_length << "\n";
+    std::cout << "Max czas:      " << params.max_time_ms << " ms\n";
+    std::cout << "Powtorzenia:   " << runs << "\n";
+    std::cout << "Wyznacz UB (RNN):  " << (params.use_ub ? "YES" : "NO") << "\n";
+    std::cout << "Wyznacz LB (MST):  " << (params.use_lb ? "YES" : "NO") << "\n";
+    std::cout << "============================\n\n";
 
-    // POMIAR CZASU: Start przed pętlą wykonawczą
-    auto start_time = std::chrono::high_resolution_clock::now();
+    TSPResult best_overall;
+    best_overall.cost = std::numeric_limits<int>::max();
 
-    for (int i = 0; i < runs; ++i) {
-        TSPResult current_run;
+    for (int i = 0; i < runs; i++) {
+        std::cout << "Powtorzenie " << (i + 1) << "/" << runs << ":\n";
 
-        if (algo == "BF") {
-            current_run = tsp_bruteforce(matrix);
+        TSPResult result = tsp_simulated_annealing(matrix, params);
+
+        std::cout << "  Finalny Koszt: " << result.cost
+                  << " | Czas: " << std::fixed << std::setprecision(1)
+                  << result.time_ms << " ms";
+
+        if (result.ub != std::numeric_limits<int>::max()) {
+            double error = ((double)(result.cost - result.ub) / result.ub) * 100.0;
+            std::cout << " | Error: " << std::setprecision(2) << error << "%";
         }
-        else if (algo == "NN") {
-            int start_node = config.count("start_node") ? std::stoi(config["start_node"]) : 0;
+        std::cout << "\n";
 
-            // Jeśli start_node to -1, losujemy wierzchołek dla każdego przebiegu
-            if (start_node == -1) {
-                current_run = tsp_nearest_neighbor(matrix, dis(gen));
-            } else {
-                current_run = tsp_nearest_neighbor(matrix, start_node);
-            }
-        }
-        else if (algo == "RNN") {
-            current_run = tsp_rnn(matrix);
-        }
-        else if (algo == "RAND") {
-            current_run = tsp_rand(matrix);
-        }
-        else {
-            std::cerr << "Error: Unknown algorithm: " << algo << std::endl;
-            return 1;
-        }
-
-        // Aktualizacja najlepszego wyniku (szukamy minimum)
-        if (current_run.cost < best_overall_result.cost) {
-            best_overall_result = current_run;
+        if (result.cost < best_overall.cost) {
+            best_overall = result;
         }
     }
 
-    // POMIAR CZASU: Stop po zakończeniu wszystkich powtórzeń
-    auto stop_time = std::chrono::high_resolution_clock::now();
+    std::cout << "\n======== Najlepszy wynik ========\n";
+    std::cout << "Koszt:          " << best_overall.cost << "\n";
+    std::cout << "Czas:           " << std::fixed << std::setprecision(1)
+              << best_overall.time_ms << " ms\n";
 
-    // Obliczenia statystyczne
-    std::chrono::duration<double, std::milli> total_duration_ms = stop_time - start_time;
-    double avg_time = total_duration_ms.count() / runs;
+    if (best_overall.ub != std::numeric_limits<int>::max()) {
+        std::cout << "UB (RNN):       " << best_overall.ub << "\n";
+        double error = ((double)(best_overall.cost - best_overall.ub) / best_overall.ub) * 100.0;
+        std::cout << "Roznica od UB:   " << std::fixed << std::setprecision(2) << error << "%\n";
+    }
 
-    // Wyświetlanie wyników
-    std::cout << "\n================ RESULT ================\n";
-    std::cout << "Algorithm:      " << algo << "\n";
-    std::cout << "Runs:           " << runs << "\n";
-    std::cout << "Best Cost:      " << best_overall_result.cost << "\n";
-    std::cout << "Total Time:     " << total_duration_ms.count() << " ms\n";
-    std::cout << "Avg Time/Run:   " << avg_time << " ms\n";
-    std::cout << "========================================\n";
+    if (best_overall.lb != std::numeric_limits<int>::max()) {
+        std::cout << "LB (MST):       " << best_overall.lb << "\n";
+        double gap = ((double)(best_overall.cost - best_overall.lb) / best_overall.lb) * 100.0;
+        std::cout << "Roznica od LB:  " << std::fixed << std::setprecision(2) << gap << "%\n";
+    }
+
+    std::cout << "============================\n";
 
     if (config.count("output") && config["output"] == "1") {
-        std::cout << "Best Path: ";
-        print_solution(best_overall_result);
+        print_solution(best_overall);
     }
 
-    // ======== Zapis do CSV ========
-    std::ofstream csv_file("results.csv", std::ios::app); // dopisywanie
-    if (csv_file.is_open()) {
-        // jeśli plik był pusty, dodaj nagłówki
-        csv_file.seekp(0, std::ios::end);
-        if (csv_file.tellp() == 0) {
-            csv_file << "Algorithm,Runs,BestCost,TotalTime_ms,AvgTime_ms\n";
+    // Zapis do CSV
+    std::ofstream csv("results.csv", std::ios::app);
+    if (csv.is_open()) {
+        csv.seekp(0, std::ios::end);
+        if (csv.tellp() == 0) {
+            csv << "Instance,Lambda,Scheme,Neighborhood,Cost,UB_RNN,LB_MST,Error%,Gap%,Time_ms\n";
         }
 
-        csv_file << algo << ",";
-        csv_file << runs << ",";
-        csv_file << best_overall_result.cost << ",";
-        csv_file << std::fixed << std::setprecision(2) << total_duration_ms.count() << ",";
-        csv_file << std::fixed << std::setprecision(2) << avg_time << "\n";
+        double error = best_overall.ub != std::numeric_limits<int>::max()
+                      ? ((double)(best_overall.cost - best_overall.ub) / best_overall.ub) * 100.0
+                      : 0.0;
 
-        csv_file.close();
-        std::cout << "Results saved to results.csv\n";
-    } else {
-        std::cerr << "Error: Could not open results.csv for writing\n";
+        double gap = best_overall.lb != std::numeric_limits<int>::max()
+                    ? ((double)(best_overall.cost - best_overall.lb) / best_overall.lb) * 100.0
+                    : 0.0;
+
+        csv << config["instancja"] << ","
+            << std::fixed << std::setprecision(3) << params.lambda << ","
+            << params.scheme << ","
+            << params.neighborhood << ","
+            << best_overall.cost << ","
+            << best_overall.ub << ","
+            << best_overall.lb << ","
+            << std::setprecision(2) << error << ","
+            << std::setprecision(2) << gap << ","
+            << std::setprecision(1) << best_overall.time_ms << "\n";
+
+        csv.close();
+        std::cout << "\nResults saved to results.csv\n";
     }
-
-    //Czekanie na klikniecie
-    std::system("pause");
-
 
     return 0;
 }

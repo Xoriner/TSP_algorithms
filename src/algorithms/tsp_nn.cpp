@@ -1,42 +1,38 @@
-#include <vector>
-#include <limits>
-#include <algorithm>
-
 #include "tsp_nn.h"
-#include "../utilities/tsp_nn_equal.h"
+#include <algorithm>
+#include <limits>
 
-TSPResult tsp_nearest_neighbor(const std::vector<std::vector<int>>& matrix, int start_node) {
+TSPResult tsp_nearest_neighbor(const std::vector<std::vector<int>>& matrix,
+                                int start_city) {
     int n = matrix.size();
+    TSPResult result;
+    result.path.push_back(start_city);
+
     std::vector<bool> visited(n, false);
-    std::vector<int> best_path;
-    int best_cost = 0;
-    int current_node = start_node;
+    visited[start_city] = true;
+    int current = start_city;
+    int total_cost = 0;
 
-    visited[start_node] = true;
-    best_path.push_back(start_node);
-
-    for (int step = 1; step < n; ++step) {
-        int next_node = -1;
+    for (int i = 1; i < n; i++) {
+        int nearest = -1;
         int min_dist = std::numeric_limits<int>::max();
 
-        for (int i = 0; i < n; ++i) {
-            if (!visited[i] && matrix[current_node][i] < min_dist) {
-                min_dist = matrix[current_node][i];
-                next_node = i;
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && matrix[current][j] < min_dist) {
+                min_dist = matrix[current][j];
+                nearest = j;
             }
         }
 
-        if (next_node != -1) {
-            visited[next_node] = true;
-            best_path.push_back(next_node);
-            best_cost += min_dist;
-            current_node = next_node;
-        }
+        visited[nearest] = true;
+        total_cost += min_dist;
+        result.path.push_back(nearest);
+        current = nearest;
     }
 
-    // Powrót do startu
-    best_cost += matrix[current_node][start_node];
-    best_path.push_back(start_node);
+    // Powrót do miasta startowego
+    total_cost += matrix[current][start_city];
+    result.cost = total_cost;
 
-    return {best_cost, best_path};
+    return result;
 }

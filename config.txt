@@ -1,15 +1,22 @@
-# =========================================
-# TSP CONFIG FILE
-# =========================================
-# input_file - ścieżka do pliku instancji
-# algorithm  - RAND | NN | RNN | BF
-# runs       - liczba powtórzeń
-# start_node - węzeł startowy (dla NN)
-# output     - czy wypisywać ścieżkę (0/1)
-# =========================================
+# Instancja TSP
+instancja = instances/generated/sym14.txt
 
-input_file = instances/TSPLIB/berlin52.tsp
-algorithm = NN
-runs = 1
-start_node = -1
-output = 1
+# Liczba powtorzen
+powtorzenia = 6
+
+# Parametry Simulated Annealing
+t0 = 10000.0           # temperatura początkowa
+lambda = 0.95          # współcz. chłodzenia <0.85-0.99>
+schemat = geometryczny # geometryczny lub logarytmiczny
+sasiedztwo = swap      # swap, insert, inverse
+dlugosc_epoki = 100    # iteracje na temperature
+
+# Warunki stopu
+max_czas = 900         # maksymalnie 900s (15min)
+max_bez_poprawy = 5000 # iteracji bez poprawy
+docelowy_blad = 0.10   # 10%
+
+# Flagi sterujące
+wyznacz_UB = true      # wyznacz UB (NN)
+wyznacz_LB = true      # wyznacz LB (MST)
+zapis_historii = true  # zapis historii f(x)
