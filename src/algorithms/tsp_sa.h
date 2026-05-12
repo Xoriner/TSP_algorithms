@@ -12,7 +12,7 @@ struct SAParams {
     double lambda;              // współczynnik chłodzenia (0.85-0.999)
     std::string scheme;         // "geometric" lub "logarithmic"
     std::string neighborhood;   // "swap", "insert", "inverse"
-    int max_time_ms;            // limit czasowy [ms]
+    int max_time_s;             // limit czasowy [s]
     int max_no_improve;         // max iteracji bez poprawy
     int epoch_length;           // długość epoki
     bool use_ub;                // wyznaczać UB (RNN)

@@ -85,19 +85,14 @@ std::vector<int> random_path(int n, std::mt19937& rng) {
 
 TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
                                    const SAParams& params) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-
-    int n = matrix.size();
-    std::mt19937 rng(std::random_device{}());
-    std::uniform_real_distribution<> real_dis(0.0, 1.0);
-
     TSPResult result;
+    TSPResult rnn_result;
     result.ub = std::numeric_limits<int>::max();
     result.lb = std::numeric_limits<int>::max();
 
     // ========== UB: RNN (z równymi sąsiadami) ==========
     if (params.use_ub) {
-        TSPResult rnn_result = tsp_rnn(matrix);
+        rnn_result = tsp_rnn(matrix);
         result.ub = rnn_result.cost;
         std::cout << "  UB (RNN): " << result.ub << "\n";
     }
@@ -108,11 +103,15 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
         std::cout << "  LB (MST): " << result.lb << "\n";
     }
 
+    int n = matrix.size();
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<> real_dis(0.0, 1.0);
+
     // ========== INICJALIZACJA TEMPERATURY ==========
     double T0 = params.t0;
     if (T0 == 0) {
         if (params.use_ub) {
-            T0 = 0.1 * result.ub;  // 10% UB (RNN)
+            T0 = 0.1 * result.ub;  // TODO powiazanie z 10% UB (RNN)
         } else {
             T0 = 10000.0;
         }
@@ -120,9 +119,21 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
 
     std::cout << "  T0: " << std::fixed << std::setprecision(1) << T0 << "\n";
 
-    // ========== INICJALIZACJA ROZWIĄZANIA ==========
-    std::vector<int> current_path = random_path(n, rng);
-    int current_cost = calculate_cost(current_path, matrix);
+    // ========== INICJALIZACJA ROZWIĄZANIA Z RNN LUB RAND ==========
+    std::vector<int> current_path;
+    int current_cost;
+
+    if (params.use_ub && result.ub != std::numeric_limits<int>::max()) {
+        // Zacznij od rozwiązania RNN
+        current_path = rnn_result.path;
+        current_cost = rnn_result.cost;
+        //std::cout << "  UB (RNN): " << current_cost << ")\n";
+    } else {
+        // Fallback: losowe rozwiązanie
+        current_path = random_path(n, rng);
+        current_cost = calculate_cost(current_path, matrix);
+        //std::cout << "  UB (Random): " << current_cost << ")\n";
+    }
 
     std::vector<int> best_path = current_path;
     int best_cost = current_cost;
@@ -131,6 +142,8 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
     int no_improve_count = 0;
     int iteration = 0;
 
+    // ========= START CZASU =======
+    auto start_time = std::chrono::high_resolution_clock::now();
     // ========== GŁÓWNA PĘTLA ==========
     while (true) {
         auto current_time = std::chrono::high_resolution_clock::now();
@@ -138,16 +151,14 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
                       (current_time - start_time).count();
 
         // WARUNKI STOPU
-        if (elapsed > params.max_time_ms) {
+        if (elapsed > params.max_time_s) {
             break;
         }
         if (no_improve_count > params.max_no_improve) {
             break;
         }
-        if (T < 0.001) {
-            break;
-        }
 
+        bool found_global_improvement = false;
         // EPOKA
         for (int epoch = 0; epoch < params.epoch_length; epoch++) {
             // Generuj sąsiada
@@ -166,11 +177,13 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
             int neighbor_cost = calculate_cost(neighbor_path, matrix);
             int delta_E = neighbor_cost - current_cost;
 
-            // AKCEPTACJA
+            // AKCEPTACJA (kryterium Metropolis)
             bool accept = false;
             if (delta_E < 0) {
+                //Rozwiazania lepsze zawsze akceptujemy
                 accept = true;
             } else {
+                //Rozwiazanie gorsze - zalezy od prawdopodobienstwa
                 double prob = std::exp(-((double)delta_E) / T);
                 if (real_dis(rng) < prob) {
                     accept = true;
@@ -180,21 +193,26 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
             if (accept) {
                 current_path = neighbor_path;
                 current_cost = neighbor_cost;
-                no_improve_count = 0;
 
                 if (current_cost < best_cost) {
                     best_path = current_path;
                     best_cost = current_cost;
+                    found_global_improvement = true; //znaleziono poprawe globalnego
                 }
-            } else {
-                no_improve_count++;
             }
         }
 
+        // Aktualizacja licznika braku popraw po epoce
+        if (found_global_improvement) {
+            no_improve_count = 0; // Reset, bo znaleźliśmy lepsze rozwiązanie
+        } else {
+            no_improve_count++; // Zwiększamy, bo ta epoka nie przyniosła poprawy globalnej
+        }
+
         // CHŁODZENIE
-        if (params.scheme == "geometric") {
+        if (params.scheme == "geometryczny") {
             T = T * params.lambda;
-        } else if (params.scheme == "logarithmic") {
+        } else if (params.scheme == "logarytmiczny") {
             T = T0 / std::log((double)(iteration + 2));
         } else {
             T = T * params.lambda;

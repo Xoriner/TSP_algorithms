@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <iomanip>
 
+//TODO obsluga roznych formatow TSP
+
 std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
     std::ifstream file(filename);
 

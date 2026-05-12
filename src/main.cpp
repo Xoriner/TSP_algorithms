@@ -50,22 +50,26 @@ int main(int argc, char* argv[]) {
     SAParams params;
     params.t0 = config.count("t0") ? std::stod(config["t0"]) : 0.0;
     params.lambda = config.count("lambda") ? std::stod(config["lambda"]) : 0.95;
-    params.scheme = config.count("schemat") ? config["schemat"] : "geometric";
+    params.scheme = config.count("schemat") ? config["schemat"] : "geometryczny";
     params.neighborhood = config.count("sasiedztwo") ? config["sasiedztwo"] : "swap";
-    params.max_time_ms = config.count("max_czas") ? std::stoi(config["max_czas"]) : 900000;
-    params.max_no_improve = config.count("max_bez_poprawy") ? std::stoi(config["max_bez_poprawy"]) : 5000;
+    params.max_time_s = config.count("max_czas") ? std::stoi(config["max_czas"]) : 900;
+    params.max_no_improve = config.count("max_bez_poprawy") ? std::stoi(config["max_bez_poprawy"]) : 50000;
     params.epoch_length = config.count("dlugosc_epoki") ? std::stoi(config["dlugosc_epoki"]) : 100;
     params.use_ub = config.count("wyznacz_UB") && config["wyznacz_UB"] == "true";
     params.use_lb = config.count("wyznacz_LB") && config["wyznacz_LB"] == "true";
 
-    int runs = config.count("powtorzenia:") ? std::stoi(config["runs"]) : 1;
+    int runs = config.count("powtorzenia") ? std::stoi(config["powtorzenia"]) : 1;
 
-    std::cout << "======== PARAMETERS ========\n";
+    for(auto const& [key, val] : config) {
+        std::cout << "DEBUG: [" << key << "] = [" << val << "]\n";
+    }
+
+    std::cout << "======== PARAMETERY ========\n";
     std::cout << "Lambda:        " << std::fixed << std::setprecision(3) << params.lambda << "\n";
     std::cout << "Schemat:       " << params.scheme << "\n";
     std::cout << "Sasiedztwo:    " << params.neighborhood << "\n";
     std::cout << "Dlugosc epoki: " << params.epoch_length << "\n";
-    std::cout << "Max czas:      " << params.max_time_ms << " ms\n";
+    std::cout << "Max czas:      " << params.max_time_s << " s\n";
     std::cout << "Powtorzenia:   " << runs << "\n";
     std::cout << "Wyznacz UB (RNN):  " << (params.use_ub ? "YES" : "NO") << "\n";
     std::cout << "Wyznacz LB (MST):  " << (params.use_lb ? "YES" : "NO") << "\n";

@@ -1,22 +1,23 @@
 # Instancja TSP
-instancja = instances/generated/sym14.txt
+instancja = instances/generated/asym14.txt
 
 # Liczba powtorzen
-powtorzenia = 6
+powtorzenia = 5
 
 # Parametry Simulated Annealing
-t0 = 10000.0           # temperatura początkowa
-lambda = 0.95          # współcz. chłodzenia <0.85-0.99>
+t0 = 100.0             # temperatura początkowa TODO(0 to liczone z wzoru)
+lambda = 0.999          # współcz. chłodzenia <0.85-0.99>
 schemat = geometryczny # geometryczny lub logarytmiczny
 sasiedztwo = swap      # swap, insert, inverse
-dlugosc_epoki = 100    # iteracje na temperature
+dlugosc_epoki = 200    # iteracje na temperature TODO(0 to liczone z wzoru)
+
+wyznacz_UB = true      # wyznacz UB (RNN)
 
 # Warunki stopu
-max_czas = 900         # maksymalnie 900s (15min)
+max_czas = 9000        # maksymalnie 900s (15min)
 max_bez_poprawy = 5000 # iteracji bez poprawy
 docelowy_blad = 0.10   # 10%
 
 # Flagi sterujące
-wyznacz_UB = true      # wyznacz UB (NN)
 wyznacz_LB = true      # wyznacz LB (MST)
 zapis_historii = true  # zapis historii f(x)
