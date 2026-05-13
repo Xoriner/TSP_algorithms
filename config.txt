@@ -1,5 +1,5 @@
 # Instancja TSP
-instancja = instances/ATSP/asym14.txt
+instancja = instances/ATSP/ftv70.atsp
 
 # Liczba powtorzen
 powtorzenia = 5

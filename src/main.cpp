@@ -33,10 +33,13 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<std::vector<int>> matrix;
-    if (config["instancja"].find(".tsp") != std::string::npos) {
-        matrix = read_tsplib(config["instancja"]);
+    std::string instancja = config["instancja"];
+
+    // Sprawdzamy czy plik to format TSPLIB (.tsp lub .atsp)
+    if (instancja.find(".tsp") != std::string::npos || instancja.find(".atsp") != std::string::npos) {
+        matrix = read_tsplib(instancja);
     } else {
-        matrix = read_simple_input(config["instancja"]);
+        matrix = read_simple_input(instancja);
     }
 
     if (matrix.empty()) {

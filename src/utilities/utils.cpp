@@ -7,7 +7,7 @@
 #include <vector>
 #include <iomanip>
 
-// Funkcja pomocnicza do czyszczenia stringów
+// Funkcja pomocnicza do czyszczenia stringów ze zbędnych białych znaków
 std::string trim(const std::string& str) {
     size_t first = str.find_first_not_of(" \t\r\n");
     if (std::string::npos == first) return str;
@@ -50,18 +50,24 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
 
     // 1. Parsowanie Nagłówka
     while (std::getline(file, line)) {
-        std::string line_up = trim(line);
-        std::string line_orig = line_up; // Zachowaj do wycinania wartości
+        // Usuwamy dwukropki, żeby ujednolicić format (niektóre pliki mają "DIMENSION:10", inne "DIMENSION : 10")
+        std::string line_clean = line;
+        std::replace(line_clean.begin(), line_clean.end(), ':', ' ');
+
+        std::string line_up = trim(line_clean);
         std::transform(line_up.begin(), line_up.end(), line_up.begin(), ::toupper);
 
         if (line_up.empty()) continue;
 
         if (line_up.find("DIMENSION") != std::string::npos) {
-            size_t pos = line_up.find(":");
-            if (pos != std::string::npos) dimension = std::stoi(trim(line_orig.substr(pos + 1)));
-            else {
-                std::stringstream ss(line_up);
-                std::string tmp; ss >> tmp >> dimension;
+            std::stringstream ss(line_up);
+            std::string tmp;
+            ss >> tmp >> dimension;
+        }
+        else if (line_up.find("TYPE") != std::string::npos) {
+            if (line_up.find("ATSP") != std::string::npos) {
+                explicit_data = true;
+                weight_format = "FULL_MATRIX"; // ATSP to z definicji pełna macierz
             }
         }
         else if (line_up.find("EDGE_WEIGHT_TYPE") != std::string::npos) {
@@ -79,6 +85,11 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
         }
     }
 
+    if (dimension <= 0) {
+        std::cerr << "Error: Invalid dimension (" << dimension << ") in file: " << filename << std::endl;
+        exit(1);
+    }
+
     std::vector<std::vector<int>> matrix(dimension, std::vector<int>(dimension, 0));
 
     // 2. Wczytywanie Danych
@@ -86,21 +97,23 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
         if (weight_format == "LOWER_DIAG_ROW") {
             for (int i = 0; i < dimension; i++) {
                 for (int j = 0; j <= i; j++) {
-                    int val; file >> val;
+                    int val;
+                    if (!(file >> val)) break;
                     matrix[i][j] = matrix[j][i] = val;
                 }
             }
-        } else { // FULL_MATRIX (ATSP)
+        } else { // FULL_MATRIX (Typowe dla ATSP)
             for (int i = 0; i < dimension; i++) {
                 for (int j = 0; j < dimension; j++) {
-                    file >> matrix[i][j];
+                    if (!(file >> matrix[i][j])) break;
                 }
             }
         }
     } else { // Współrzędne (EUC_2D lub GEO)
         std::vector<std::pair<double, double>> coords(dimension);
         for (int i = 0; i < dimension; i++) {
-            int id; file >> id >> coords[i].first >> coords[i].second;
+            int id;
+            if (!(file >> id >> coords[i].first >> coords[i].second)) break;
         }
         for (int i = 0; i < dimension; i++) {
             for (int j = 0; j < dimension; j++) {
@@ -121,8 +134,12 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
 // Funkcja dla prostych plików tekstowych (n + macierz)
 std::vector<std::vector<int>> read_simple_input(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file.is_open()) { exit(1); }
-    int n; file >> n;
+    if (!file.is_open()) {
+        std::cerr << "Error: Cannot open simple input file: " << filename << std::endl;
+        exit(1);
+    }
+    int n;
+    if (!(file >> n)) return {};
     std::vector<std::vector<int>> matrix(n, std::vector<int>(n));
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
@@ -131,6 +148,10 @@ std::vector<std::vector<int>> read_simple_input(const std::string& filename) {
 }
 
 void print_solution(const TSPResult& result) {
+    if (result.path.empty()) {
+        std::cout << "No solution found.\n";
+        return;
+    }
     std::cout << "\nPath (first 20 cities): ";
     for (size_t i = 0; i < std::min((size_t)20, result.path.size()); i++) {
         std::cout << result.path[i] << (i < std::min((size_t)19, result.path.size() - 1) ? " -> " : "");
