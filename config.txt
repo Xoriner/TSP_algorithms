@@ -1,5 +1,5 @@
 # Instancja TSP
-instancja = instances/generated/asym14.txt
+instancja = instances/ATSP/asym14.txt
 
 # Liczba powtorzen
 powtorzenia = 5
