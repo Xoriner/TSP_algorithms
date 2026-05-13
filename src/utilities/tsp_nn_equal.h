@@ -6,6 +6,7 @@
 
 //Nearest Neighbor z rozpatrywaniem równych sąsiadów.
 
+// ZAMIEŃ CAŁĄ FUNKCJĘ NA TĘ WERSJĘ ITERACYJNĄ:
 inline void tsp_nn_equal(
     const std::vector<std::vector<int>>& matrix,
     std::vector<bool>& visited,
@@ -17,48 +18,31 @@ inline void tsp_nn_equal(
 ) {
     int n = matrix.size();
 
-    // Jeśli odwiedziliśmy wszystkie miasta
-    if (current_path.size() == n) {
-        int total_cost = current_cost + matrix[current_node][start_node];
+    // Klasyczna pętla zachłanna zamiast rekurencji
+    for (int step = 1; step < n; step++) {
+        int min_dist = std::numeric_limits<int>::max();
+        int next_node = -1;
 
-        if (total_cost < best_result.cost) {
-            best_result.cost = total_cost;
-            best_result.path = current_path;
-            best_result.path.push_back(start_node);
+        for (int i = 0; i < n; i++) {
+            if (!visited[i] && matrix[current_node][i] < min_dist) {
+                min_dist = matrix[current_node][i];
+                next_node = i;
+            }
         }
-        return;
+
+        if (next_node == -1) break; // Nie powinno wystąpić w pełnym grafie
+
+        visited[next_node] = true;
+        current_path.push_back(next_node);
+        current_cost += min_dist;
+        current_node = next_node;
     }
 
-    // Znajdź minimalny dystans do nieodwiedzonego miasta
-    int min_dist = std::numeric_limits<int>::max();
-    for (int i = 0; i < n; i++) {
-        if (!visited[i] && matrix[current_node][i] < min_dist) {
-            min_dist = matrix[current_node][i];
-        }
-    }
+    // Zamknięcie cyklu
+    int total_cost = current_cost + matrix[current_node][start_node];
+    current_path.push_back(start_node);
 
-    // Zbierz WSZYSTKICH kandydatów z minimalnym dystansem
-    for (int i = 0; i < n; i++) {
-        if (!visited[i] && matrix[current_node][i] == min_dist) {
-
-            // Wybierz tego kandydata
-            visited[i] = true;
-            current_path.push_back(i);
-
-            // Rekurencja
-            tsp_nn_equal(
-                matrix,
-                visited,
-                current_path,
-                i,
-                current_cost + matrix[current_node][i],
-                start_node,
-                best_result
-            );
-
-            // Backtracking
-            visited[i] = false;
-            current_path.pop_back();
-        }
-    }
+    // Zapisujemy wynik
+    best_result.cost = total_cost;
+    best_result.path = current_path;
 }

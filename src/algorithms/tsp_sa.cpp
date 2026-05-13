@@ -147,11 +147,13 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
     // ========== GŁÓWNA PĘTLA ==========
     while (true) {
         auto current_time = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
+        auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>
                       (current_time - start_time).count();
 
+        double elapsed_s = elapsed_ms / 1000.0; //Konwersja na sekundy
+
         // WARUNKI STOPU
-        if (elapsed > params.max_time_s) {
+        if (elapsed_s > params.max_time_s) {
             break;
         }
         if (no_improve_count > params.max_no_improve) {

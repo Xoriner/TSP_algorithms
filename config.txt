@@ -1,12 +1,12 @@
 # Instancja TSP
-instancja = instances/ATSP/ftv70.atsp
+instancja = instances/ATSP/rbg443.atsp
 
 # Liczba powtorzen
 powtorzenia = 5
 
 # Parametry Simulated Annealing
 t0 = 100.0             # temperatura początkowa TODO(0 to liczone z wzoru)
-lambda = 0.999          # współcz. chłodzenia <0.85-0.99>
+lambda = 0.999         # współcz. chłodzenia <0.85-0.99>
 schemat = geometryczny # geometryczny lub logarytmiczny
 sasiedztwo = swap      # swap, insert, inverse
 dlugosc_epoki = 200    # iteracje na temperature TODO(0 to liczone z wzoru)
