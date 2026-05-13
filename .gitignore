@@ -1,5 +1,7 @@
 cmake-build-debug
 cmake-build-release
+cmake-build-debug-mingw
+cmake-build-release-mingw
 Projektowanie Efektywnych Algorytmów - zadania i zasady oceniania v1.1.pdf
 results.csv
 results_bab.csv

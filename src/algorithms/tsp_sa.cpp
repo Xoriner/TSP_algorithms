@@ -156,8 +156,11 @@ TSPResult tsp_simulated_annealing(const std::vector<std::vector<int>>& matrix,
         if (elapsed_s > params.max_time_s) {
             break;
         }
-        if (no_improve_count > params.max_no_improve) {
-            break;
+
+       // if (elapsed_s > 30) {
+            if (no_improve_count > params.max_no_improve) {
+                break;
+         //   }
         }
 
         bool found_global_improvement = false;
