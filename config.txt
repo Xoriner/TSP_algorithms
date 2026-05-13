@@ -1,15 +1,15 @@
 # Instancja TSP
-instancja = instances/TSP/d198.txt
+instancja = instances/TSP/d198.tsp
 
 # Liczba powtorzen
 powtorzenia = 1
 
 # Parametry Simulated Annealing
-t0 = 37             # temperatura początkowa TODO(0 to liczone z wzoru)
+t0 = 141             # temperatura początkowa TODO(0 to liczone z wzoru)
 lambda = 0.999         # współcz. chłodzenia <0.85-0.99>
 schemat = geometryczny # geometryczny lub logarytmiczny
 sasiedztwo = insert    # swap, insert, inverse
-dlugosc_epoki = 280    # iteracje na temperature TODO(0 to liczone z wzoru)
+dlugosc_epoki = 3960    # iteracje na temperature TODO(0 to liczone z wzoru)
 
 wyznacz_UB = true      # wyznacz UB (RNN)
 
