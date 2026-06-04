@@ -63,9 +63,9 @@ int main(int argc, char* argv[]) {
 
     int runs = config.count("powtorzenia") ? std::stoi(config["powtorzenia"]) : 1;
 
-    for(auto const& [key, val] : config) {
-        std::cout << "DEBUG: [" << key << "] = [" << val << "]\n";
-    }
+    // for(auto const& [key, val] : config) {
+    //     std::cout << "DEBUG: [" << key << "] = [" << val << "]\n";
+    // }
 
     std::cout << "======== PARAMETERY ========\n";
     std::cout << "Lambda:        " << std::fixed << std::setprecision(3) << params.lambda << "\n";
