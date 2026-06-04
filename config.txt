@@ -1,23 +1,22 @@
 # Instancja TSP
-instancja = instances/TSP/d198.tsp
+instancja = instances/sym14.txt
 
 # Liczba powtorzen
-powtorzenia = 1
+powtorzenia = 5
 
-# Parametry Simulated Annealing
-t0 = 141               # temperatura początkowa
-lambda = 0.999         # współcz. chłodzenia <0.85-0.99>
-schemat = geometryczny # geometryczny lub logarytmiczny
-sasiedztwo = insert    # swap, insert, inverse
-dlugosc_epoki = 3960   # iteracje na temperature
-
-wyznacz_UB = true      # wyznacz UB (RNN)
+# Parametry Algorytmu mrowkowego (ACO)
+alfa = 1.0             # waga śladu feromonowego (zwykle ok. 1.0)
+beta = 5.0             # waga widoczności/heurystyki (zwykle 2.0 - 5.0)
+rho = 0.5              # współczynnik parowania feromonowego (zwykle 0.1 - 0.5)
+m = 14                 # liczba mrówek (często równa n, lub stała np. 50)
 
 # Warunki stopu
 max_czas = 900         # maksymalnie 900s (15min)
 max_bez_poprawy = 5000 # iteracji bez poprawy
-docelowy_blad = 0.10   # 10%
+docelowy_blad = 0   # docelowy blad w %
 
 # Flagi sterujące
-wyznacz_LB = true      # wyznacz LB (MST)
+wyznacz_UB = false      # wyznacz UB (np. Nearest Neighbor)
+wyznacz_LB = false      # wyznacz LB (np. MST / 1-Tree)
 zapis_historii = true  # zapis historii f(x)
+output = 1             # wypisz trasę na koniec

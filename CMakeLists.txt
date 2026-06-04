@@ -11,6 +11,8 @@ add_executable(pea
         src/algorithms/tsp_rnn.cpp
         src/algorithms/tsp_mst.cpp
         src/algorithms/tsp_sa.cpp
+        src/algorithms/tsp_aco.cpp
+        src/algorithms/tsp_aco.h
 )
 
 target_include_directories(pea PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
