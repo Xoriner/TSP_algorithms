@@ -15,7 +15,7 @@ std::string trim(const std::string& str) {
     return str.substr(first, (last - first + 1));
 }
 
-// Przeliczanie współrzędnych geograficznych (dla ulysses16/22)
+// Przeliczanie współrzędnych geograficznych (zgodnie ze standardem TSPLIB)
 int calc_geo_dist(double x1, double y1, double x2, double y2) {
     double PI = 3.14159265358979323846;
     auto to_rad = [PI](double deg) {
@@ -34,7 +34,7 @@ int calc_geo_dist(double x1, double y1, double x2, double y2) {
     return (int)(RRR * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0);
 }
 
-// Główna funkcja TSPLIB - obsługuje .atsp i .tsp
+// Główna funkcja TSPLIB - obsługuje .atsp, .tsp (EUC_2D, GEO, ATT)
 std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -50,7 +50,7 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
 
     // 1. Parsowanie Nagłówka
     while (std::getline(file, line)) {
-        // Usuwamy dwukropki, żeby ujednolicić format (niektóre pliki mają "DIMENSION:10", inne "DIMENSION : 10")
+        // Usuwamy dwukropki, żeby ujednolicić format
         std::string line_clean = line;
         std::replace(line_clean.begin(), line_clean.end(), ':', ' ');
 
@@ -64,16 +64,19 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
             std::string tmp;
             ss >> tmp >> dimension;
         }
+        // WAŻNE: Najpierw sprawdzamy EDGE_WEIGHT_TYPE (dłuższa fraza)
+        else if (line_up.find("EDGE_WEIGHT_TYPE") != std::string::npos) {
+            if (line_up.find("GEO") != std::string::npos) weight_type = "GEO";
+            else if (line_up.find("ATT") != std::string::npos) weight_type = "ATT";
+            else if (line_up.find("EUC_2D") != std::string::npos) weight_type = "EUC_2D";
+            else if (line_up.find("EXPLICIT") != std::string::npos) explicit_data = true;
+        }
+        // DOPIERO POTEM sprawdzamy samo TYPE
         else if (line_up.find("TYPE") != std::string::npos) {
             if (line_up.find("ATSP") != std::string::npos) {
                 explicit_data = true;
-                weight_format = "FULL_MATRIX"; // ATSP to z definicji pełna macierz
+                weight_format = "FULL_MATRIX";
             }
-        }
-        else if (line_up.find("EDGE_WEIGHT_TYPE") != std::string::npos) {
-            if (line_up.find("GEO") != std::string::npos) weight_type = "GEO";
-            else if (line_up.find("EUC_2D") != std::string::npos) weight_type = "EUC_2D";
-            else if (line_up.find("EXPLICIT") != std::string::npos) explicit_data = true;
         }
         else if (line_up.find("EDGE_WEIGHT_FORMAT") != std::string::npos) {
             if (line_up.find("LOWER_DIAG_ROW") != std::string::npos) weight_format = "LOWER_DIAG_ROW";
@@ -109,7 +112,7 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
                 }
             }
         }
-    } else { // Współrzędne (EUC_2D lub GEO)
+    } else { // Współrzędne (EUC_2D, GEO, lub ATT)
         std::vector<std::pair<double, double>> coords(dimension);
         for (int i = 0; i < dimension; i++) {
             int id;
@@ -117,13 +120,27 @@ std::vector<std::vector<int>> read_tsplib(const std::string& filename) {
         }
         for (int i = 0; i < dimension; i++) {
             for (int j = 0; j < dimension; j++) {
-                if (i == j) matrix[i][j] = 0;
+                if (i == j) {
+                    matrix[i][j] = 0;
+                }
                 else if (weight_type == "GEO") {
                     matrix[i][j] = calc_geo_dist(coords[i].first, coords[i].second, coords[j].first, coords[j].second);
-                } else {
+                }
+                else if (weight_type == "ATT") {
                     double dx = coords[i].first - coords[j].first;
                     double dy = coords[i].second - coords[j].second;
-                    matrix[i][j] = (int)std::round(std::sqrt(dx * dx + dy * dy));
+                    double rij = std::sqrt((dx * dx + dy * dy) / 10.0);
+                    int tij = (int)std::round(rij);
+                    if (tij < rij) {
+                        matrix[i][j] = tij + 1;
+                    } else {
+                        matrix[i][j] = tij;
+                    }
+                }
+                else { // EUC_2D (domyślny)
+                    double dx = coords[i].first - coords[j].first;
+                    double dy = coords[i].second - coords[j].second;
+                    matrix[i][j] = (int)(std::sqrt(dx * dx + dy * dy) + 0.5);
                 }
             }
         }
