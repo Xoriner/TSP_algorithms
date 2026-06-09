@@ -1,12 +1,12 @@
 # Instancja TSP
-instancja = instances/burma14.tsp
+instancja = instances/pcb442.tsp
 OPT = 3323      # znany OPT
 powtorzenia = 1
 
 # Parametry ACO
 alfa    = 1.0   # wplyw feromonu
 beta    = 2.0   # wplyw heurystyki <2-5>
-rho     = 0.5   # wspolcz. parowania <0,1]
+rho     = 0.2   # wspolcz. parowania <0,1]
 Q       = 1.0   # stala wzmocnienia
 m       = 0     # liczba mrowek (0 = m=n)
 wariant = CAS   # CAS, DAS lub QAS
