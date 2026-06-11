@@ -190,7 +190,7 @@ TSPResult tsp_aco(const std::vector<std::vector<int>>& matrix, const ACOParams& 
         cycle++;
 
         // Zabezpieczenie limitu optymalnego z konfiguracji (Jeśli znaleziono OPT)
-        if (params.opt > 0 && best_cost <= params.opt) break;
+        //if (params.opt > 0 && best_cost <= params.opt) break;
     }
 
     auto end_time = std::chrono::high_resolution_clock::now();

@@ -1,7 +1,7 @@
 # Instancja TSP
-instancja = instances/pcb442.tsp
-OPT = 3323      # znany OPT
-powtorzenia = 1
+instancja = instances/gr21.tsp
+OPT = 2707     # znany OPT
+powtorzenia = 5
 
 # Parametry ACO
 alfa    = 1.0   # wplyw feromonu
@@ -12,11 +12,11 @@ m       = 0     # liczba mrowek (0 = m=n)
 wariant = CAS   # CAS, DAS lub QAS
 tau0_mode = nn  # nn: tau0=m/C_nn (RNN)
                 # manual: wartosc ponizej
-tau0    = 0.01  # aktywne gdy manual
+tau0    = 0.1  # aktywne gdy manual
 
 # Warunki stopu
 max_czas        = 900  # maks. czas w s
 max_bez_poprawy = 300  # cykli bez poprawy
 
 # Flagi sterujace
-zapis_historii = false  # zapis f(x)(t)
+zapis_historii = true  # zapis f(x)(t)

@@ -140,6 +140,9 @@ int main(int argc, char* argv[]) {
 
         double delta = (params.opt > 0) ? ((double)(best_overall.cost - params.opt) / params.opt) * 100.0 : 0.0;
 
+        // Logika zapisu Tau0: jeśli manual, wpisuje wartość, jeśli auto, wpisuje "auto"
+        std::string tau_output = (params.tau0_mode == "manual") ? std::to_string(params.tau0) : "auto";
+
         csv << config["instancja"] << ","
             << params.wariant << ","
             << std::fixed << std::setprecision(2) << params.alfa << ","
@@ -147,7 +150,7 @@ int main(int argc, char* argv[]) {
             << params.rho << ","
             << params.Q << ","
             << params.m << ","
-            << params.tau0_mode << ","
+            << tau_output << ","
             << best_overall.cost << ","
             << params.opt << ","
             << std::setprecision(2) << delta << ","
